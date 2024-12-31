@@ -15,13 +15,18 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
+import AssignmentIcon from '@mui/icons-material/Assignment';
 import { UserForm } from './UserForm';
+import { TaskList } from '../tasks/TaskList';
+import { ConfirmDialog } from '../shared/ConfirmDialog';
 
 export const UserList = () => {
  const [users, setUsers] = useState<User[]>([]);
  const [isModalOpen, setIsModalOpen] = useState(false);
  const [selectedUser, setSelectedUser] = useState<User | null>(null);
  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+ const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
+ const [userToDelete, setUserToDelete] = useState<number | null>(null);
 
  useEffect(() => {
    loadUsers();
@@ -35,6 +40,17 @@ export const UserList = () => {
  const handleDelete = async (id: number) => {
    await UserAPI.delete(id);
    loadUsers();
+ };
+
+ const handleDeleteClick = (id: number) => {
+   setUserToDelete(id);
+ };
+
+ const handleDeleteConfirm = async () => {
+   if (userToDelete) {
+     await handleDelete(userToDelete);
+     setUserToDelete(null);
+   }
  };
 
  const handleCreateSuccess = () => {
@@ -51,6 +67,11 @@ export const UserList = () => {
  const handleEdit = (user: User) => {
    setSelectedUser(user);
    setIsEditModalOpen(true);
+ };
+
+ const handleManageTasks = (user: User) => {
+   setSelectedUser(user);
+   setIsTaskModalOpen(true);
  };
 
  return (
@@ -81,8 +102,11 @@ export const UserList = () => {
                <IconButton onClick={() => handleEdit(user)}>
                  <EditIcon />
                </IconButton>
-               <IconButton onClick={() => handleDelete(user.id)}>
+               <IconButton onClick={() => handleDeleteClick(user.id)}>
                  <DeleteIcon />
+               </IconButton>
+               <IconButton onClick={() => handleManageTasks(user)}>
+                 <AssignmentIcon />
                </IconButton>
              </TableCell>
            </TableRow>
@@ -114,6 +138,29 @@ export const UserList = () => {
          />
        </Box>
      </Modal>
+
+     <Modal
+       open={isTaskModalOpen}
+       onClose={() => setIsTaskModalOpen(false)}
+       aria-labelledby="modal-tasks"
+     >
+       <Box>
+         {selectedUser && (
+           <TaskList 
+             userId={selectedUser.id} 
+             onClose={() => setIsTaskModalOpen(false)}
+           />
+         )}
+       </Box>
+     </Modal>
+
+     <ConfirmDialog
+       open={userToDelete !== null}
+       title="Eliminar Usuario"
+       message="¿Está seguro que desea eliminar este usuario? Esta acción también eliminará todas sus tareas asociadas."
+       onConfirm={handleDeleteConfirm}
+       onCancel={() => setUserToDelete(null)}
+     />
    </Box>
  );
 };
