@@ -20,6 +20,7 @@ import { UserForm } from './UserForm';
 import { TaskList } from '../tasks/TaskList';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { Pagination } from '../shared/Pagination';
+import { notify } from '../../utils/toast';
 
 export const UserList = () => {
  const [users, setUsers] = useState<User[]>([]);
@@ -43,8 +44,13 @@ export const UserList = () => {
  };
 
  const handleDelete = async (id: number) => {
-   await UserAPI.delete(id);
-   loadUsers();
+   try {
+     await UserAPI.delete(id);
+     notify.success('Usuario eliminado correctamente');
+     loadUsers();
+   } catch (error) {
+     notify.error('Error al eliminar el usuario');
+   }
  };
 
  const handleDeleteClick = (id: number) => {
@@ -59,11 +65,13 @@ export const UserList = () => {
  };
 
  const handleCreateSuccess = () => {
+   notify.success('Usuario creado correctamente');
    loadUsers();
    setIsModalOpen(false);
  };
 
  const handleEditSuccess = () => {
+   notify.success('Usuario actualizado correctamente');
    loadUsers();
    setIsEditModalOpen(false);
    setSelectedUser(null);

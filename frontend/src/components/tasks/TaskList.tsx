@@ -22,6 +22,7 @@ import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { Pagination } from '../shared/Pagination';
 import { TaskStatusSelect } from './TaskStatusSelect';
 import { TaskStatus } from '../../models/task.model';
+import { notify } from '../../utils/toast';
 
 interface TaskListProps {
   userId: number;
@@ -49,8 +50,13 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
   };
 
   const handleDelete = async (taskId: number) => {
-    await TaskAPI.delete(userId, taskId);
-    loadTasks();
+    try {
+      await TaskAPI.delete(userId, taskId);
+      notify.success('Tarea eliminada correctamente');
+      loadTasks();
+    } catch (error) {
+      notify.error('Error al eliminar la tarea');
+    }
   };
 
   const handleEdit = (task: Task) => {
@@ -59,6 +65,7 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
   };
 
   const handleSuccess = () => {
+    notify.success(selectedTask ? 'Tarea actualizada correctamente' : 'Tarea creada correctamente');
     loadTasks();
     setIsModalOpen(false);
     setSelectedTask(null);
@@ -80,12 +87,17 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
   };
 
   const handleStatusChange = async (task: Task, newStatus: TaskStatus) => {
-    await TaskAPI.update(userId, task.id, {
+    try {
+      await TaskAPI.update(userId, task.id, {
         status: newStatus,
         title: task.title,
         description: task.description
-    });
-    loadTasks();
+      });
+      notify.success('Estado actualizado correctamente');
+      loadTasks();
+    } catch (error) {
+      notify.error('Error al actualizar el estado');
+    }
   };
 
   return (

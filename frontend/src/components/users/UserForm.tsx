@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Box, TextField, Button, Typography } from '@mui/material';
 import { UserAPI } from '../../api/user.api';
 import { User } from '../../models/user.model';
+import { notify } from '../../utils/toast';
 
 interface UserFormProps {
   onSuccess: () => void;
@@ -26,12 +27,16 @@ export const UserForm = ({ onSuccess, onCancel, initialData, isEdit = false }: U
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isEdit && initialData) {
-      await UserAPI.update(initialData.id, formData);
-    } else {
-      await UserAPI.create(formData);
+    try {
+      if (isEdit && initialData) {
+        await UserAPI.update(initialData.id, formData);
+      } else {
+        await UserAPI.create(formData);
+      }
+      onSuccess();
+    } catch (error: any) {
+      notify.error(error.response?.data?.message || 'Error al procesar la solicitud');
     }
-    onSuccess();
   };
 
   return (

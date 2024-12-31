@@ -3,6 +3,7 @@ import { Box, TextField, Button, Typography, Checkbox, FormControlLabel } from '
 import { TaskAPI } from '../../api/task.api';
 import { Task, TaskStatus } from '../../models/task.model';
 import { TaskStatusSelect } from './TaskStatusSelect';
+import { notify } from '../../utils/toast';
 
 interface TaskFormProps {
   userId: number;
@@ -33,12 +34,16 @@ export const TaskForm = ({ userId, onSuccess, onCancel, initialData, isEdit = fa
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isEdit && initialData) {
-      await TaskAPI.update(userId, initialData.id, formData);
-    } else {
-      await TaskAPI.create(userId, formData);
+    try {
+      if (isEdit && initialData) {
+        await TaskAPI.update(userId, initialData.id, formData);
+      } else {
+        await TaskAPI.create(userId, formData);
+      }
+      onSuccess();
+    } catch (error: any) {
+      notify.error(error.response?.data?.message || 'Error al procesar la solicitud');
     }
-    onSuccess();
   };
 
   return (
