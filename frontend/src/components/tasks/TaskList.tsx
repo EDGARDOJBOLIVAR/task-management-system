@@ -11,9 +11,7 @@ import {
   TableHead,
   TableRow,
   Typography,
-  Modal,
-  Checkbox
-} from '@mui/material';
+  Modal} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -22,6 +20,8 @@ import { TaskForm } from './TaskForm';
 import { User } from '../../models/user.model';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
 import { Pagination } from '../shared/Pagination';
+import { TaskStatusSelect } from './TaskStatusSelect';
+import { TaskStatus } from '../../models/task.model';
 
 interface TaskListProps {
   userId: number;
@@ -53,15 +53,6 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
     loadTasks();
   };
 
-  const handleToggleComplete = async (task: Task) => {
-    await TaskAPI.update(userId, task.id, {
-        completed: !task.completed,
-        title: task.title,
-        description: task.description
-    });
-    loadTasks();
-  };
-
   const handleEdit = (task: Task) => {
     setSelectedTask(task);
     setIsModalOpen(true);
@@ -86,6 +77,15 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
 
   const handlePageChange = (page: number) => {
     loadTasks(page);
+  };
+
+  const handleStatusChange = async (task: Task, newStatus: TaskStatus) => {
+    await TaskAPI.update(userId, task.id, {
+        status: newStatus,
+        title: task.title,
+        description: task.description
+    });
+    loadTasks();
   };
 
   return (
@@ -135,29 +135,23 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Completada</TableCell>
             <TableCell>Título</TableCell>
             <TableCell>Descripción</TableCell>
+            <TableCell>Estado</TableCell>
             <TableCell>Acciones</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {tasks.map((task) => (
             <TableRow key={task.id}>
-              <TableCell>
-                <Checkbox
-                  checked={task.completed}
-                  onChange={() => handleToggleComplete(task)}
-                  sx={{
-                    color: 'rgba(76, 175, 80, 0.6)',
-                    '&.Mui-checked': {
-                      color: 'success.main',
-                    }
-                  }}
-                />
-              </TableCell>
               <TableCell>{task.title}</TableCell>
               <TableCell>{task.description}</TableCell>
+              <TableCell>
+                <TaskStatusSelect
+                  value={task.status}
+                  onChange={(status) => handleStatusChange(task, status)}
+                />
+              </TableCell>
               <TableCell>
                 <IconButton 
                   onClick={() => handleEdit(task)}

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Box, TextField, Button, Typography, Checkbox, FormControlLabel } from '@mui/material';
 import { TaskAPI } from '../../api/task.api';
-import { Task } from '../../models/task.model';
+import { Task, TaskStatus } from '../../models/task.model';
+import { TaskStatusSelect } from './TaskStatusSelect';
 
 interface TaskFormProps {
   userId: number;
@@ -15,7 +16,7 @@ export const TaskForm = ({ userId, onSuccess, onCancel, initialData, isEdit = fa
   const [formData, setFormData] = useState({
     title: initialData?.title || '',
     description: initialData?.description || '',
-    completed: initialData?.completed || false
+    status: initialData?.status || TaskStatus.PENDING
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,6 +25,10 @@ export const TaskForm = ({ userId, onSuccess, onCancel, initialData, isEdit = fa
       ...prev,
       [name]: name === 'completed' ? checked : value
     }));
+  };
+
+  const handleStatusChange = (status: TaskStatus) => {
+    setFormData(prev => ({ ...prev, status }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -74,18 +79,10 @@ export const TaskForm = ({ userId, onSuccess, onCancel, initialData, isEdit = fa
         multiline
         rows={4}
       />
-      {isEdit && (
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={formData.completed}
-              onChange={handleChange}
-              name="completed"
-            />
-          }
-          label="Completada"
-        />
-      )}
+      <TaskStatusSelect
+        value={formData.status}
+        onChange={handleStatusChange}
+      />
       <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
         <Button
           type="submit"
