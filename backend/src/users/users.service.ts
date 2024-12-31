@@ -5,6 +5,7 @@ import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { TasksService } from '../tasks/tasks.service';
+import { PaginationOptions, PaginatedResponse } from '../common/interfaces/pagination.interface';
 
 @Injectable()
 export class UsersService {
@@ -28,8 +29,19 @@ export class UsersService {
     }
   }
 
-  async findAll() {
-    return await this.usersRepository.find();
+  async findAll(options: PaginationOptions): Promise<PaginatedResponse<User>> {
+    const [items, total] = await this.usersRepository.findAndCount({
+      skip: (options.page - 1) * options.limit,
+      take: options.limit,
+      order: { id: 'DESC' }
+    });
+
+    return {
+      items,
+      total,
+      page: options.page,
+      totalPages: Math.ceil(total / options.limit)
+    };
   }
 
   async findOne(id: number) {

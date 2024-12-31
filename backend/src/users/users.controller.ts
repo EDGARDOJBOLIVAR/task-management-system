@@ -8,11 +8,14 @@ import {
   Param, 
   ParseIntPipe,
   HttpCode,
-  HttpStatus
+  HttpStatus,
+  Query
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { PaginatedResponse } from '../common/interfaces/pagination.interface';
+import { User } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -26,8 +29,11 @@ export class UsersController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Query('page') page: number = 1, @Query('limit') limit: number = 10): Promise<PaginatedResponse<User>> {
+    return this.usersService.findAll({
+      page: Number(page),
+      limit: Number(limit)
+    });
   }
 
   @Get(':id')
