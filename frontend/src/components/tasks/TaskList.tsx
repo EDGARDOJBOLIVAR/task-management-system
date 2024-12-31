@@ -139,15 +139,33 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
                 <Checkbox
                   checked={task.completed}
                   onChange={() => handleToggleComplete(task)}
+                  sx={{
+                    color: 'rgba(76, 175, 80, 0.6)',
+                    '&.Mui-checked': {
+                      color: 'success.main',
+                    }
+                  }}
                 />
               </TableCell>
               <TableCell>{task.title}</TableCell>
               <TableCell>{task.description}</TableCell>
               <TableCell>
-                <IconButton onClick={() => handleEdit(task)}>
+                <IconButton 
+                  onClick={() => handleEdit(task)}
+                  color="info"
+                  sx={{
+                    '&:hover': { backgroundColor: 'rgba(33, 150, 243, 0.2)' }
+                  }}
+                >
                   <EditIcon />
                 </IconButton>
-                <IconButton onClick={() => handleDeleteClick(task.id)}>
+                <IconButton 
+                  onClick={() => handleDeleteClick(task.id)}
+                  color="error"
+                  sx={{
+                    '&:hover': { backgroundColor: 'rgba(244, 67, 54, 0.2)' }
+                  }}
+                >
                   <DeleteIcon />
                 </IconButton>
               </TableCell>

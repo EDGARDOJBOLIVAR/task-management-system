@@ -99,13 +99,31 @@ export const UserList = () => {
              <TableCell>{user.name}</TableCell>
              <TableCell>{user.email}</TableCell>
              <TableCell>
-               <IconButton onClick={() => handleEdit(user)}>
+               <IconButton 
+                 onClick={() => handleEdit(user)}
+                 color="info" 
+                 sx={{
+                   '&:hover': { backgroundColor: 'rgba(33, 150, 243, 0.2)' }
+                 }}
+               >
                  <EditIcon />
                </IconButton>
-               <IconButton onClick={() => handleDeleteClick(user.id)}>
+               <IconButton 
+                 onClick={() => handleDeleteClick(user.id)}
+                 color="error"
+                 sx={{
+                   '&:hover': { backgroundColor: 'rgba(244, 67, 54, 0.2)' }
+                 }}
+               >
                  <DeleteIcon />
                </IconButton>
-               <IconButton onClick={() => handleManageTasks(user)}>
+               <IconButton 
+                 onClick={() => handleManageTasks(user)}
+                 color="success"
+                 sx={{
+                   '&:hover': { backgroundColor: 'rgba(76, 175, 80, 0.2)' }
+                 }}
+               >
                  <AssignmentIcon />
                </IconButton>
              </TableCell>
