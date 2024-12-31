@@ -184,6 +184,7 @@ export const UserList = () => {
            <TaskList 
              userId={selectedUser.id} 
              onClose={() => setIsTaskModalOpen(false)}
+             user={selectedUser}
            />
          )}
        </Box>

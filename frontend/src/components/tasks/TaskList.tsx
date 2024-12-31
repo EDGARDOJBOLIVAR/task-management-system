@@ -21,6 +21,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { TaskForm } from './TaskForm';
 import { User } from '../../models/user.model';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
+import { Pagination } from '../shared/Pagination';
 
 interface TaskListProps {
   userId: number;
@@ -33,14 +34,18 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     loadTasks();
   }, [userId]);
 
-  const loadTasks = async () => {
-    const { data } = await TaskAPI.getAll(userId);
-    setTasks(data);
+  const loadTasks = async (page: number = currentPage) => {
+    const { data } = await TaskAPI.getAll(userId, page);
+    setTasks(data.items);
+    setTotalPages(data.totalPages);
+    setCurrentPage(data.page);
   };
 
   const handleDelete = async (taskId: number) => {
@@ -77,6 +82,10 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
       await handleDelete(taskToDelete);
       setTaskToDelete(null);
     }
+  };
+
+  const handlePageChange = (page: number) => {
+    loadTasks(page);
   };
 
   return (
@@ -173,6 +182,12 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
           ))}
         </TableBody>
       </Table>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
 
       <Modal
         open={isModalOpen}
