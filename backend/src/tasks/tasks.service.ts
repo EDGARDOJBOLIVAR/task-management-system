@@ -5,6 +5,7 @@ import { Task } from './entities/task.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
 import { UsersService } from '../users/users.service';
+import { PaginationOptions, PaginatedResponse } from '../common/interfaces/pagination.interface';
 
 @Injectable()
 export class TasksService {
@@ -43,13 +44,22 @@ export class TasksService {
         }
     }
 
-    async findAll(userId: number) {
+    async findAll(userId: number, options: PaginationOptions): Promise<PaginatedResponse<Task>> {
         await this.validateUser(userId);
         try {
-            return await this.tasksRepository.find({
+            const [items, total] = await this.tasksRepository.findAndCount({
                 where: { user: { id: userId } },
-                order: { createdAt: 'DESC' }
+                order: { createdAt: 'DESC' },
+                skip: (options.page - 1) * options.limit,
+                take: options.limit
             });
+
+            return {
+                items,
+                total,
+                page: options.page,
+                totalPages: Math.ceil(total / options.limit)
+            };
         } catch (error) {
             throw new BadRequestException('Error fetching tasks');
         }

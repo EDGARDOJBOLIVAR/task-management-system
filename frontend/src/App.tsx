@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { createTheme } from '@mui/material/styles';
 import { UsersPage } from './pages/Users';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const theme = createTheme({
   palette: {
@@ -18,6 +20,13 @@ export const App = () => (
         <Route path="/users" element={<UsersPage />} />
       </Routes>
     </BrowserRouter>
+    <ToastContainer
+      position="top-right"
+      autoClose={3000}
+      hideProgressBar={false}
+      closeOnClick
+      pauseOnHover
+    />
   </ThemeProvider>
 );
 

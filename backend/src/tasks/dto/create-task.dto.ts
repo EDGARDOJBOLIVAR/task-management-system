@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsString, IsOptional, IsBoolean } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsBoolean, IsEnum } from 'class-validator';
+import { TaskStatus } from '../enums/task-status.enum';
 
 export class CreateTaskDto {
     @IsString()
@@ -12,4 +13,8 @@ export class CreateTaskDto {
     @IsBoolean()
     @IsOptional()
     completed?: boolean;
+
+    @IsOptional()
+    @IsEnum(TaskStatus)
+    status?: TaskStatus;
 }

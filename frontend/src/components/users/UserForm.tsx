@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Box, TextField, Button, Typography } from '@mui/material';
 import { UserAPI } from '../../api/user.api';
 import { User } from '../../models/user.model';
+import { notify } from '../../utils/toast';
 
 interface UserFormProps {
   onSuccess: () => void;
@@ -15,6 +16,10 @@ export const UserForm = ({ onSuccess, onCancel, initialData, isEdit = false }: U
     name: initialData?.name || '',
     email: initialData?.email || ''
   });
+  const [errors, setErrors] = useState({
+    name: '',
+    email: ''
+  });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -24,14 +29,45 @@ export const UserForm = ({ onSuccess, onCancel, initialData, isEdit = false }: U
     }));
   };
 
+  const validateForm = (): boolean => {
+    const newErrors = {
+      name: '',
+      email: ''
+    };
+
+    if (formData.name.trim().length < 3) {
+      newErrors.name = 'El nombre debe tener al menos 3 caracteres';
+    }
+    if (formData.name.trim().length > 50) {
+      newErrors.name = 'El nombre no debe exceder los 50 caracteres';
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      newErrors.email = 'Ingrese un email válido';
+    }
+
+    setErrors(newErrors);
+    return !Object.values(newErrors).some(error => error !== '');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isEdit && initialData) {
-      await UserAPI.update(initialData.id, formData);
-    } else {
-      await UserAPI.create(formData);
+    if (!validateForm()) {
+      notify.error('Por favor, corrija los errores del formulario');
+      return;
     }
-    onSuccess();
+
+    try {
+      if (isEdit && initialData) {
+        await UserAPI.update(initialData.id, formData);
+      } else {
+        await UserAPI.create(formData);
+      }
+      onSuccess();
+    } catch (error: any) {
+      notify.error(error.response?.data?.message || 'Error al procesar la solicitud');
+    }
   };
 
   return (
@@ -60,7 +96,10 @@ export const UserForm = ({ onSuccess, onCancel, initialData, isEdit = false }: U
         name="name"
         value={formData.name}
         onChange={handleChange}
+        error={!!errors.name}
+        helperText={errors.name}
         required
+        inputProps={{ maxLength: 50 }}
       />
       <TextField
         fullWidth
@@ -70,6 +109,8 @@ export const UserForm = ({ onSuccess, onCancel, initialData, isEdit = false }: U
         type="email"
         value={formData.email}
         onChange={handleChange}
+        error={!!errors.email}
+        helperText={errors.email}
         required
       />
       <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>

@@ -11,9 +11,7 @@ import {
   TableHead,
   TableRow,
   Typography,
-  Modal,
-  Checkbox
-} from '@mui/material';
+  Modal} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -21,6 +19,11 @@ import CloseIcon from '@mui/icons-material/Close';
 import { TaskForm } from './TaskForm';
 import { User } from '../../models/user.model';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
+import { Pagination } from '../shared/Pagination';
+import { TaskStatusSelect } from './TaskStatusSelect';
+import { TaskStatus } from '../../models/task.model';
+import { notify } from '../../utils/toast';
+import { TaskStatusFilter } from './TaskStatusFilter';
 
 interface TaskListProps {
   userId: number;
@@ -33,28 +36,29 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'ALL'>('ALL');
 
   useEffect(() => {
     loadTasks();
   }, [userId]);
 
-  const loadTasks = async () => {
-    const { data } = await TaskAPI.getAll(userId);
-    setTasks(data);
+  const loadTasks = async (page: number = currentPage) => {
+    const { data } = await TaskAPI.getAll(userId, page);
+    setTasks(data.items);
+    setTotalPages(data.totalPages);
+    setCurrentPage(data.page);
   };
 
   const handleDelete = async (taskId: number) => {
-    await TaskAPI.delete(userId, taskId);
-    loadTasks();
-  };
-
-  const handleToggleComplete = async (task: Task) => {
-    await TaskAPI.update(userId, task.id, {
-        completed: !task.completed,
-        title: task.title,
-        description: task.description
-    });
-    loadTasks();
+    try {
+      await TaskAPI.delete(userId, taskId);
+      notify.success('Tarea eliminada correctamente');
+      loadTasks();
+    } catch (error) {
+      notify.error('Error al eliminar la tarea');
+    }
   };
 
   const handleEdit = (task: Task) => {
@@ -63,6 +67,7 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
   };
 
   const handleSuccess = () => {
+    notify.success(selectedTask ? 'Tarea actualizada correctamente' : 'Tarea creada correctamente');
     loadTasks();
     setIsModalOpen(false);
     setSelectedTask(null);
@@ -78,6 +83,28 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
       setTaskToDelete(null);
     }
   };
+
+  const handlePageChange = (page: number) => {
+    loadTasks(page);
+  };
+
+  const handleStatusChange = async (task: Task, newStatus: TaskStatus) => {
+    try {
+      await TaskAPI.update(userId, task.id, {
+        status: newStatus,
+        title: task.title,
+        description: task.description
+      });
+      notify.success('Estado actualizado correctamente');
+      loadTasks();
+    } catch (error) {
+      notify.error('Error al actualizar el estado');
+    }
+  };
+
+  const filteredTasks = tasks.filter(task => 
+    statusFilter === 'ALL' ? true : task.status === statusFilter
+  );
 
   return (
     <Box sx={{
@@ -114,41 +141,45 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
         )}
       </Box>
 
-      <Button
-        variant="contained"
-        startIcon={<AddIcon />}
-        onClick={() => setIsModalOpen(true)}
-        sx={{ mb: 2 }}
-      >
-        Nueva Tarea
-      </Button>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        mb: 2 
+      }}>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setIsModalOpen(true)}
+        >
+          Nueva Tarea
+        </Button>
+        <TaskStatusFilter
+          value={statusFilter}
+          onChange={setStatusFilter}
+        />
+      </Box>
 
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Completada</TableCell>
             <TableCell>Título</TableCell>
             <TableCell>Descripción</TableCell>
+            <TableCell>Estado</TableCell>
             <TableCell>Acciones</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {tasks.map((task) => (
+          {filteredTasks.map((task) => (
             <TableRow key={task.id}>
-              <TableCell>
-                <Checkbox
-                  checked={task.completed}
-                  onChange={() => handleToggleComplete(task)}
-                  sx={{
-                    color: 'rgba(76, 175, 80, 0.6)',
-                    '&.Mui-checked': {
-                      color: 'success.main',
-                    }
-                  }}
-                />
-              </TableCell>
               <TableCell>{task.title}</TableCell>
               <TableCell>{task.description}</TableCell>
+              <TableCell>
+                <TaskStatusSelect
+                  value={task.status}
+                  onChange={(status) => handleStatusChange(task, status)}
+                />
+              </TableCell>
               <TableCell>
                 <IconButton 
                   onClick={() => handleEdit(task)}
@@ -173,6 +204,12 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
           ))}
         </TableBody>
       </Table>
+
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+      />
 
       <Modal
         open={isModalOpen}

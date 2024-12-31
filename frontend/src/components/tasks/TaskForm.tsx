@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Box, TextField, Button, Typography, Checkbox, FormControlLabel } from '@mui/material';
 import { TaskAPI } from '../../api/task.api';
-import { Task } from '../../models/task.model';
+import { Task, TaskStatus } from '../../models/task.model';
+import { TaskStatusSelect } from './TaskStatusSelect';
+import { notify } from '../../utils/toast';
 
 interface TaskFormProps {
   userId: number;
@@ -15,7 +17,11 @@ export const TaskForm = ({ userId, onSuccess, onCancel, initialData, isEdit = fa
   const [formData, setFormData] = useState({
     title: initialData?.title || '',
     description: initialData?.description || '',
-    completed: initialData?.completed || false
+    status: initialData?.status || TaskStatus.PENDING
+  });
+  const [errors, setErrors] = useState({
+    title: '',
+    description: ''
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,14 +32,47 @@ export const TaskForm = ({ userId, onSuccess, onCancel, initialData, isEdit = fa
     }));
   };
 
+  const handleStatusChange = (status: TaskStatus) => {
+    setFormData(prev => ({ ...prev, status }));
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors = {
+      title: '',
+      description: ''
+    };
+
+    if (formData.title.trim().length < 3) {
+      newErrors.title = 'El título debe tener al menos 3 caracteres';
+    }
+    if (formData.title.trim().length > 100) {
+      newErrors.title = 'El título no debe exceder los 100 caracteres';
+    }
+    if (formData.description && formData.description.length > 500) {
+      newErrors.description = 'La descripción no debe exceder los 500 caracteres';
+    }
+
+    setErrors(newErrors);
+    return !Object.values(newErrors).some(error => error !== '');
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isEdit && initialData) {
-      await TaskAPI.update(userId, initialData.id, formData);
-    } else {
-      await TaskAPI.create(userId, formData);
+    if (!validateForm()) {
+      notify.error('Por favor, corrija los errores del formulario');
+      return;
     }
-    onSuccess();
+
+    try {
+      if (isEdit && initialData) {
+        await TaskAPI.update(userId, initialData.id, formData);
+      } else {
+        await TaskAPI.create(userId, formData);
+      }
+      onSuccess();
+    } catch (error: any) {
+      notify.error(error.response?.data?.message || 'Error al procesar la solicitud');
+    }
   };
 
   return (
@@ -62,7 +101,10 @@ export const TaskForm = ({ userId, onSuccess, onCancel, initialData, isEdit = fa
         name="title"
         value={formData.title}
         onChange={handleChange}
+        error={!!errors.title}
+        helperText={errors.title}
         required
+        inputProps={{ maxLength: 100 }}
       />
       <TextField
         fullWidth
@@ -71,21 +113,16 @@ export const TaskForm = ({ userId, onSuccess, onCancel, initialData, isEdit = fa
         name="description"
         value={formData.description}
         onChange={handleChange}
+        error={!!errors.description}
+        helperText={errors.description || `${formData.description.length}/500`}
         multiline
         rows={4}
+        inputProps={{ maxLength: 500 }}
       />
-      {isEdit && (
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={formData.completed}
-              onChange={handleChange}
-              name="completed"
-            />
-          }
-          label="Completada"
-        />
-      )}
+      <TaskStatusSelect
+        value={formData.status}
+        onChange={handleStatusChange}
+      />
       <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
         <Button
           type="submit"

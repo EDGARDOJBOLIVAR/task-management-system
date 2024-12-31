@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, ParseIntPipe, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, ParseIntPipe, HttpCode, HttpStatus, Query } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -18,8 +18,15 @@ export class TasksController {
 
     @Get()
     @HttpCode(HttpStatus.OK)
-    findAll(@Param('userId', ParseIntPipe) userId: number) {
-        return this.tasksService.findAll(userId);
+    findAll(
+        @Param('userId', ParseIntPipe) userId: number,
+        @Query('page') page: number = 1,
+        @Query('limit') limit: number = 5
+    ) {
+        return this.tasksService.findAll(userId, {
+            page: Number(page),
+            limit: Number(limit)
+        });
     }
 
     @Get(':id')
