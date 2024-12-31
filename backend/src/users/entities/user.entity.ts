@@ -12,9 +12,6 @@ export class User {
     @Column({ unique: true })
     email: string;
 
-    @OneToMany(() => Task, task => task.user, {
-        cascade: true,
-        onDelete: 'CASCADE'
-    })
+    @OneToMany(() => Task, task => task.user)
     tasks: Task[];
 }

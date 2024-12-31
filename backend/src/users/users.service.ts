@@ -1,15 +1,19 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { TasksService } from '../tasks/tasks.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    @Inject(forwardRef(() => TasksService))
+    private tasksService: TasksService,
+    private dataSource: DataSource
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -50,7 +54,25 @@ export class UsersService {
   }
 
   async remove(id: number) {
-    const user = await this.findOne(id);
-    return await this.usersRepository.remove(user);
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      const user = await this.findOne(id);
+      
+      // Primero eliminar todas las tareas
+      await this.tasksService.removeAllUserTasks(id);
+      
+      // Luego eliminar el usuario
+      await this.usersRepository.remove(user);
+      
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
   }
 }
