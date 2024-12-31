@@ -23,6 +23,7 @@ import { Pagination } from '../shared/Pagination';
 import { TaskStatusSelect } from './TaskStatusSelect';
 import { TaskStatus } from '../../models/task.model';
 import { notify } from '../../utils/toast';
+import { TaskStatusFilter } from './TaskStatusFilter';
 
 interface TaskListProps {
   userId: number;
@@ -37,6 +38,7 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
   const [taskToDelete, setTaskToDelete] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<TaskStatus | 'ALL'>('ALL');
 
   useEffect(() => {
     loadTasks();
@@ -100,6 +102,10 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
     }
   };
 
+  const filteredTasks = tasks.filter(task => 
+    statusFilter === 'ALL' ? true : task.status === statusFilter
+  );
+
   return (
     <Box sx={{
       position: 'absolute',
@@ -135,14 +141,24 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
         )}
       </Box>
 
-      <Button
-        variant="contained"
-        startIcon={<AddIcon />}
-        onClick={() => setIsModalOpen(true)}
-        sx={{ mb: 2 }}
-      >
-        Nueva Tarea
-      </Button>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        mb: 2 
+      }}>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setIsModalOpen(true)}
+        >
+          Nueva Tarea
+        </Button>
+        <TaskStatusFilter
+          value={statusFilter}
+          onChange={setStatusFilter}
+        />
+      </Box>
 
       <Table>
         <TableHead>
@@ -154,7 +170,7 @@ export const TaskList = ({ userId, onClose, user }: TaskListProps) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {tasks.map((task) => (
+          {filteredTasks.map((task) => (
             <TableRow key={task.id}>
               <TableCell>{task.title}</TableCell>
               <TableCell>{task.description}</TableCell>
