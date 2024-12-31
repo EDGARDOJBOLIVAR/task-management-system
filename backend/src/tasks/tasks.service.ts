@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
@@ -11,6 +11,7 @@ export class TasksService {
     constructor(
         @InjectRepository(Task)
         private tasksRepository: Repository<Task>,
+        @Inject(forwardRef(() => UsersService))
         private usersService: UsersService,
     ) {}
 
@@ -99,6 +100,19 @@ export class TasksService {
                 throw error;
             }
             throw new BadRequestException('Error deleting task');
+        }
+    }
+
+    async removeAllUserTasks(userId: number) {
+        try {
+            await this.tasksRepository
+                .createQueryBuilder()
+                .delete()
+                .from(Task)
+                .where("userId = :userId", { userId })
+                .execute();
+        } catch (error) {
+            throw new BadRequestException('Error deleting user tasks');
         }
     }
 }
