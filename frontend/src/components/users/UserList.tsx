@@ -19,6 +19,7 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import { UserForm } from './UserForm';
 import { TaskList } from '../tasks/TaskList';
 import { ConfirmDialog } from '../shared/ConfirmDialog';
+import { Pagination } from '../shared/Pagination';
 
 export const UserList = () => {
  const [users, setUsers] = useState<User[]>([]);
@@ -27,14 +28,18 @@ export const UserList = () => {
  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
  const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
  const [userToDelete, setUserToDelete] = useState<number | null>(null);
+ const [currentPage, setCurrentPage] = useState(1);
+ const [totalPages, setTotalPages] = useState(1);
 
  useEffect(() => {
    loadUsers();
  }, []);
 
- const loadUsers = async () => {
-   const { data } = await UserAPI.getAll();
-   setUsers(data);
+ const loadUsers = async (page: number = currentPage) => {
+   const { data } = await UserAPI.getAll(page);
+   setUsers(data.items);
+   setTotalPages(data.totalPages);
+   setCurrentPage(data.page);
  };
 
  const handleDelete = async (id: number) => {
@@ -74,6 +79,10 @@ export const UserList = () => {
    setIsTaskModalOpen(true);
  };
 
+ const handlePageChange = (page: number) => {
+   loadUsers(page);
+ };
+
  return (
    <Box>
      <Box sx={{ mb: 2 }}>
@@ -88,6 +97,7 @@ export const UserList = () => {
      <Table>
        <TableHead>
          <TableRow>
+           <TableCell>Id</TableCell>
            <TableCell>Nombre</TableCell>
            <TableCell>Email</TableCell>
            <TableCell>Acciones</TableCell>
@@ -96,6 +106,7 @@ export const UserList = () => {
        <TableBody>
          {users.map((user) => (
            <TableRow key={user.id}>
+             <TableCell>{user.id}</TableCell>
              <TableCell>{user.name}</TableCell>
              <TableCell>{user.email}</TableCell>
              <TableCell>
@@ -132,6 +143,12 @@ export const UserList = () => {
        </TableBody>
      </Table>
      
+     <Pagination
+       currentPage={currentPage}
+       totalPages={totalPages}
+       onPageChange={handlePageChange}
+     />
+
      <Modal
        open={isModalOpen}
        onClose={() => setIsModalOpen(false)}
