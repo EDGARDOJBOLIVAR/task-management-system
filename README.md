@@ -8,7 +8,7 @@ La documentación detallada de la arquitectura y especificaciones técnicas se e
 
 ### Video Demo
 Puedes ver una demostración completa del sistema en funcionamiento en:
-- [Video Demo del Sistema](./docs/Demo.webm)
+- [Video Demo del Sistema](https://livejaverianaedu-my.sharepoint.com/:v:/g/personal/bolivar_edgardo_javeriana_edu_co/EYVU4smPyw5EnYu9-1pvyaYBMd38jEft8H221lNEogjkkw?nav=eyJyZWZlcnJhbEluZm8iOnsicmVmZXJyYWxBcHAiOiJTdHJlYW1XZWJBcHAiLCJyZWZlcnJhbFZpZXciOiJTaGFyZURpYWxvZy1MaW5rIiwicmVmZXJyYWxBcHBQbGF0Zm9ybSI6IldlYiIsInJlZmVycmFsTW9kZSI6InZpZXcifX0%3D&e=zW3N7a)
 
 ## Requisitos Previos
 
