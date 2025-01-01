@@ -1,6 +1,14 @@
 # Task Management System
 
-Sistema de gestión de tareas con frontend en React y backend en NestJS.
+## Documentación y Demo
+
+### Documentación Completa
+La documentación detallada de la arquitectura y especificaciones técnicas se encuentra disponible en:
+- [Arquitectura y Especificaciones Técnicas (PDF)](./docs/Arquitectura.pdf)
+
+### Video Demo
+Puedes ver una demostración completa del sistema en funcionamiento en:
+- [Video Demo del Sistema](./docs/Demo.webm)
 
 ## Requisitos Previos
 
